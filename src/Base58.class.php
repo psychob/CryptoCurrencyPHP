@@ -181,5 +181,3 @@ class Base58
         return $res;
     }
 }
-
-?>

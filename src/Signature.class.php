@@ -19,7 +19,7 @@ class Signature
      * @param $k
      * @param null $nonce
      * @throws \Exception
-     * @return Array
+     * @return array
      */
     public static function getSignatureHashPoints($hash, $k, $nonce = null)
     {
@@ -411,7 +411,4 @@ class Signature
 
         return self::checkSignaturePoints($pubKey, $R, $S, $hash);
     }
-
 }
-
-?>
