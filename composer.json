@@ -1,0 +1,34 @@
+{
+  "name": "psychob/crypto-currency-php",
+  "description": "Crypto Currency PHP library ported to packagist",
+  "type": "library",
+  "require": {
+    "php": "^7.1",
+    "ext-bcmath": "^7.1",
+    "ext-gmp": "^7.1",
+    "ext-openssl": "^7.1"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^7.3"
+  },
+  "license": "MPL-2.0",
+  "authors": [
+    {
+      "name": "Andrzej Budzanowski",
+      "email": "kontakt@andrzej.budzanowski.pl"
+    },
+    {
+      "name": "Daniel Morante",
+      "email": "daniel@morante.net"
+    }
+  ],
+  "minimum-stability": "stable",
+  "config": {
+    "sort-packages": true
+  },
+  "autoload": {
+    "classmap": [
+      "./src"
+    ]
+  }
+}

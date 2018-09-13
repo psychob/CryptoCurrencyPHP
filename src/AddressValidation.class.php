@@ -1,4 +1,7 @@
 <?php
+
+namespace PsychoB\CryptoCurrencyPHP;
+
 /*
  * Crypto Currency Address Validation Library
  * For use with Bitcoin and Zetacoin compatable crypto currency using the secp256k1 ECC curve
@@ -8,8 +11,8 @@
 */
 
 
-class AddressValidation {
-
+class AddressValidation
+{
     /***
      * Tests if the address is valid or not.
      *
@@ -18,18 +21,20 @@ class AddressValidation {
      */
     public static function validateAddress($address)
     {
-        $address    = hex2bin(Base58::Decode($address));
-        if(strlen($address) != 25)
+        $address = hex2bin(Base58::Decode($address));
+        if (strlen($address) != 25) {
             return false;
-        $checksum   = substr($address, 21, 4);
+        }
+        $checksum = substr($address, 21, 4);
         $rawAddress = substr($address, 0, 21);
-        $sha256		= hash('sha256', $rawAddress);
-        $sha256		= hash('sha256', hex2bin($sha256));
+        $sha256 = hash('sha256', $rawAddress);
+        $sha256 = hash('sha256', hex2bin($sha256));
 
-        if(substr(hex2bin($sha256), 0, 4) == $checksum)
+        if (substr(hex2bin($sha256), 0, 4) == $checksum) {
             return true;
-        else
+        } else {
             return false;
+        }
     }
 
     /***
@@ -40,14 +45,16 @@ class AddressValidation {
      */
     public static function validateWifKey($wif)
     {
-        $key            = Base58::Decode($wif, false);
-        $length         = strlen($key);
-        $firstSha256    = hash('sha256', hex2bin(substr($key, 0, $length - 8)));
-        $secondSha256   = hash('sha256', hex2bin($firstSha256));
-        if(substr($secondSha256, 0, 8) == substr($key, $length - 8, 8))
+        $key = Base58::Decode($wif, false);
+        $length = strlen($key);
+        $firstSha256 = hash('sha256', hex2bin(substr($key, 0, $length - 8)));
+        $secondSha256 = hash('sha256', hex2bin($firstSha256));
+        if (substr($secondSha256, 0, 8) == substr($key, $length - 8, 8)) {
             return true;
-        else
+        } else {
             return false;
+        }
     }
 }
+
 ?>
