@@ -3,10 +3,12 @@
 namespace PsychoB\CryptoCurrencyPHP;
 
 /*
- * The SECp256k1 curve
- * Fundamental ECC Function for Bitcoin/Zetacoin compatable Crypto Currency
- * @author Daniel Morante
- * Some parts may contain work based on Jan Moritz Lindemann, Matyas Danter, and Joey Hewitt
+ * The SECp256k1 curve.
+ *
+ * For use with Bitcoin and Zetacoin compatable crypto currency using the secp256k1 ECC curve.
+ *
+ * Author Daniel Morante
+ * Some parts may contain work based on Jan Moritz Lindemann, Matyas Danter and Joey Hewitt
 */
 
 class SECp256k1
