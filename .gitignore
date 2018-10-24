@@ -1,2 +1,30 @@
-/.idea/
+# IDE & System related files
+Desktop.ini
+Thumbs.db
+.DS_Store
+.buildpath
+.idea
+.project
+.settings
+.vscode
+
+# Composer dependencies
 /vendor/
+
+# Builds
+/build/
+
+# PHPUnit configuration
+phpunit.xml
+
+# PHP CodeSniffer configuration
+phpcs.xml
+
+# phpDocumentor configuration
+phpdoc.xml
+
+# Box configuration
+box.json
+
+# Not ignore .gitkeep files
+!.gitkeep
