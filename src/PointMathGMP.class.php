@@ -2,29 +2,37 @@
 
 namespace PsychoB\CryptoCurrencyPHP;
 
+use Exception;
+
 /*
- * Object orieted interface to Helpful Point Math Operations
- * Using the GMP library
+ * Object orieted interface to Helpful Point Math Operations using the GMP library.
  *
- * @author Daniel Morante
- * Some parts may contain work based on Jan Moritz Lindemann, Matyas Danter, and Joey Hewitt
+ * For use with Bitcoin and Zetacoin compatable crypto currency using the secp256k1 ECC curve.
+ *
+ * Author Daniel Morante
+ * Some parts may contain work based on Jan Moritz Lindemann, Matyas Danter and Joey Hewitt
 */
 
 class PointMathGMP
 {
 
-    /***
-     * Computes the result of a point addition and returns the resulting point as an Array.
+    /**
+     * Computes the result of a point doubling and returns the resulting point as an array.
      *
      * @param array $pt
-     * @return array Point
-     * @throws \Exception
+     * @param int   $a
+     * @param int   $p
+     *
+     * @return array Resulting point
+     *
+     * @throws Exception If things are unsupported
      */
-    public static function doublePoint(Array $pt, $a, $p)
+    public static function doublePoint(array $pt, $a, $p)
     {
         $gcd = gmp_strval(gmp_gcd(gmp_mod(gmp_mul(gmp_init(2, 10), $pt['y']), $p), $p));
         if ($gcd != '1') {
-            throw new \Exception('This library doesn\'t yet supports point at infinity. See https://github.com/BitcoinPHP/BitcoinECDSA.php/issues/9');
+            // See https://github.com/BitcoinPHP/BitcoinECDSA.php/issues/9
+            throw new Exception('This library doesn\'t yet supports point at infinity.');
         }
 
         // SLOPE = (3 * ptX^2 + a )/( 2*ptY )
@@ -84,24 +92,28 @@ class PointMathGMP
         return $nPt;
     }
 
-    /***
-     * Computes the result of a point addition and returns the resulting point as an Array.
+    /**
+     * Computes the result of a point addition and returns the resulting point as an array.
      *
-     * @param array $pt1
+     * @param array $pt
      * @param array $pt2
-     * @return array Point
-     * @throws \Exception
+     * @param int   $a
+     * @param int   $p
+     *
+     * @return array Resulting point
+     *
+     * @throws Exception If things are unsupported
      */
-    public static function addPoints(Array $pt1, Array $pt2, $a, $p)
+    public static function addPoints(array $pt1, array $pt2, $a, $p)
     {
-        if (gmp_cmp($pt1['x'], $pt2['x']) == 0 && gmp_cmp($pt1['y'], $pt2['y']) == 0) //if identical
-        {
+        if (gmp_cmp($pt1['x'], $pt2['x']) == 0 && gmp_cmp($pt1['y'], $pt2['y']) == 0) { //if identical
             return self::doublePoint($pt1, $a, $p);
         }
 
         $gcd = gmp_strval(gmp_gcd(gmp_sub($pt1['x'], $pt2['x']), $p));
         if ($gcd != '1') {
-            throw new \Exception('This library doesn\'t yet supports point at infinity. See https://github.com/BitcoinPHP/BitcoinECDSA.php/issues/9');
+            // See See https://github.com/BitcoinPHP/BitcoinECDSA.php/issues/9
+            throw new Exception('This library doesn\'t yet supports point at infinity.');
         }
 
         // SLOPE = (pt1Y - pt2Y)/( pt1X - pt2X )
@@ -154,24 +166,28 @@ class PointMathGMP
         return $nPt;
     }
 
-    /***
-     * Computes the result of a point multiplication and returns the resulting point as an Array.
+    /**
+     * Computes the result of a point multiplication and returns the resulting point as an array.
      *
-     * @param String Hex $k
-     * @param array $pG (GMP, GMP)
-     * @param $base (INT)
-     * @throws \Exception
-     * @return array Point (GMP, GMP)
+     * @param string          $k (hex)
+     * @param array(GMP, GMP) $pG
+     * @param int             $base
+     *
+     * @return array(GMP, GMP) Resulting point
+     *
+     * @throws Exception If the resulting point is not on the curve
      */
-    public static function mulPoint($k, Array $pG, $a, $b, $p, $base = null)
+    public static function mulPoint($k, array $pG, $a, $b, $p, $base = null)
     {
         //in order to calculate k*G
         if ($base == 16 || $base == null || is_resource($base)) {
             $k = gmp_init($k, 16);
         }
+
         if ($base == 10) {
             $k = gmp_init($k, 10);
         }
+
         $kBin = gmp_strval($k, 2);
 
         $lastPoint = $pG;
@@ -183,18 +199,24 @@ class PointMathGMP
                 $lastPoint = self::doublePoint($lastPoint, $a, $p);
             }
         }
-        if (!self::validatePoint(gmp_strval($lastPoint['x'], 16), gmp_strval($lastPoint['y'], 16), $a, $b, $p)) {
-            throw new \Exception('The resulting point is not on the curve.');
+
+        if (!self::validatePoint(gmp_strval($lastPoint['x'], 16), gmp_strval($lastPoint['y'], 16), $a, $b, $p)
+        ) {
+            throw new Exception('The resulting point is not on the curve.');
         }
+
         return $lastPoint;
     }
 
-    /***
+    /**
      * Calculates the square root of $a mod p and returns the 2 solutions as an array.
      *
-     * @param $a
+     * @param int $a
+     * @param int $a
+     *
      * @return array|null
-     * @throws \Exception
+     *
+     * @throws Exception If something isn't supported
      */
     public static function sqrt($a, $p)
     {
@@ -216,18 +238,23 @@ class PointMathGMP
             // In an infinite number field you have -2^2 = 2^2 = 4
             // In a finite number field you have a^2 = (p-a)^2
             $sqrt2 = gmp_mod(gmp_sub($p, $sqrt1), $p);
+
             return array($sqrt1, $sqrt2);
         } else {
-            throw new \Exception('P % 4 != 3 , this isn\'t supported yet.');
+            throw new Exception('P % 4 != 3 , this isn\'t supported yet.');
         }
     }
 
-    /***
+    /**
      * Calculate the Y coordinates for a given X coordinate.
      *
-     * @param $x
+     * @param int  $x
+     * @param int  $a
+     * @param int  $b
+     * @param int  $p
      * @param null $derEvenOrOddCode
-     * @return array|null|String
+     *
+     * @return array|null|string
      */
     public static function calculateYWithX($x, $a, $b, $p, $derEvenOrOddCode = null)
     {
@@ -245,16 +272,15 @@ class PointMathGMP
 
         $y = self::sqrt($y2, $p);
 
-        if (!$y) //if there is no result
-        {
+        // If there is no result
+        if (!$y) {
             return null;
         }
 
         if (!$derEvenOrOddCode) {
             return $y;
         } else {
-            if ($derEvenOrOddCode == '02') // even
-            {
+            if ($derEvenOrOddCode == '02') { // Even
                 $resY = null;
                 if (false == gmp_strval(gmp_mod($y[0], gmp_init(2, 10)), 10)) {
                     $resY = gmp_strval($y[0], 16);
@@ -269,8 +295,7 @@ class PointMathGMP
                 }
                 return $resY;
             } else {
-                if ($derEvenOrOddCode == '03') // odd
-                {
+                if ($derEvenOrOddCode == '03') { // Odd
                     $resY = null;
                     if (true == gmp_strval(gmp_mod($y[0], gmp_init(2, 10)), 10)) {
                         $resY = gmp_strval($y[0], 16);
@@ -291,11 +316,15 @@ class PointMathGMP
         return null;
     }
 
-    /***
+    /**
      * Returns true if the point is on the curve and false if it isn't.
      *
-     * @param $x
-     * @param $y
+     * @param int $x
+     * @param int $y
+     * @param int $a
+     * @param int $b
+     * @param int $p
+     *
      * @return bool
      */
     public static function validatePoint($x, $y, $a, $b, $p)
@@ -320,10 +349,11 @@ class PointMathGMP
         }
     }
 
-    /***
+    /**
      * Returns Negated Point (Y).
      *
-     * @param $point array(GMP, GMP)
+     * @param array(GMP, GMP) $point
+     *
      * @return array(GMP, GMP)
      */
     public static function negatePoint($point)
@@ -331,15 +361,25 @@ class PointMathGMP
         return array('x' => $point['x'], 'y' => gmp_neg($point['y']));
     }
 
-    // These 2 function don't really belong here.
-
-    // Checks is the given number (DEC String) is even
+    /**
+     * Checks is the given number (DEC string) is even.
+     *
+     * @param string $number
+     *
+     * @return bool
+     */
     public static function isEvenNumber($number)
     {
         return (((int)$number[strlen($number) - 1]) & 1) == 0;
     }
 
-    // Converts BIN to GMP
+    /**
+     * Converts BIN to GMP
+     *
+     * @param string $binStr
+     *
+     * @return int
+     */
     public static function bin2gmp($binStr)
     {
         $v = gmp_init('0');
@@ -350,5 +390,4 @@ class PointMathGMP
 
         return $v;
     }
-
 }

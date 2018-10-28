@@ -2,26 +2,30 @@
 
 namespace PsychoB\CryptoCurrencyPHP;
 
+use Exception;
+use ErrorException;
+
 /*
- * Object orieted interface to Helpful Point Math Operations
- * Using the BCMATH library
+ * Object orieted interface to Helpful Point Math Operations using the BCMATH library.
  *
- * @author Daniel Morante
- * Some parts may contain work based on Jan Moritz Lindemann, Matyas Danter, and Joey Hewitt
+ * For use with Bitcoin and Zetacoin compatable crypto currency using the secp256k1 ECC curve.
+ *
+ * Author Daniel Morante
+ * Some parts may contain work based on Jan Moritz Lindemann, Matyas Danter and Joey Hewitt
 */
 
 class PointMathBCMATH
 {
-    /***
-     * Computes the result of a point addition and returns the resulting point as an Array.
+    /**
+     * Computes the result of a point doubling and returns the resulting point as an array.
      *
      * @param array $pt
-     * @param $a
-     * @param $p
-     * @return array Point
-     * @throws \Exception
+     * @param int   $a
+     * @param int   $p
+     *
+     * @return array Resulting point
      */
-    public static function doublePoint(Array $pt, $a, $p)
+    public static function doublePoint(array $pt, $a, $p)
     {
         $nPt = array();
 
@@ -50,29 +54,30 @@ class PointMathBCMATH
         return $nPt;
     }
 
-    /***
-     * Computes the result of a point addition and returns the resulting point as an Array.
+    /**
+     * Computes the result of a point addition and returns the resulting point as an array.
      *
-     * @param array $pt1
+     * @param array $pt
      * @param array $pt2
-     * @param $a
-     * @param $p
-     * @return array Point
-     * @throws \Exception
+     * @param int   $a
+     * @param int   $p
+     *
+     * @return array Resulting point
+     *
+     * @throws Exception If things are unsupported
      */
-    public static function addPoints(Array $pt1, Array $pt2, $a, $p)
+    public static function addPoints(array $pt1, array $pt2, $a, $p)
     {
-
         $nPt = array();
 
         $gcd = self::bcgcd(bcsub($pt1['x'], $pt2['x']), $p);
         if ($gcd != '1') {
-            throw new \Exception('This library doesn\'t yet supports point at infinity.');
+            throw new Exception('This library doesn\'t yet supports point at infinity.');
         }
 
         if (bcmod(bccomp($pt1['x'], $pt2['x']), $p) == 0) {
             if (bcmod(bcadd($pt1['y'], $pt2['y']), $p) == 0) {
-                throw new \Exception('This library doesn\'t yet supports point at infinity.');
+                throw new Exception('This library doesn\'t yet supports point at infinity.');
             } else {
                 return self::doublePoint($pt1, $a, $p);
             }
@@ -94,27 +99,33 @@ class PointMathBCMATH
         return $nPt;
     }
 
-    /***
+    /**
      * Returns inverse mod.
      *
-     * @param $a
-     * @param $m
+     * @param int $a
+     * @param int $m
+     *
      * @return string bbc math number
+     *
+     * @throws ErrorException If parameters are not correct
      */
     private static function inverse_mod($a, $m)
     {
         while (bccomp($a, 0) == -1) {
             $a = bcadd($m, $a);
         }
+
         while (bccomp($m, $a) == -1) {
             $a = bcmod($a, $m);
         }
+
         $c = $a;
         $d = $m;
         $uc = 1;
         $vc = 0;
         $ud = 0;
         $vd = 1;
+
         while (bccomp($c, 0) != 0) {
             $temp1 = $c;
             $q = bcdiv($d, $c, 0);
@@ -127,6 +138,7 @@ class PointMathBCMATH
             $ud = $temp2;
             $vd = $temp3;
         }
+
         $result = '';
         if (bccomp($d, 1) == 0) {
             if (bccomp($ud, 0) == 1) {
@@ -137,15 +149,17 @@ class PointMathBCMATH
         } else {
             throw new ErrorException("ERROR: $a and $m are NOT relatively prime.");
         }
+
         return $result;
     }
 
-    /***
+    /**
      * Compares Points if Identical.
      *
-     * @param $pt1 array(BC, BC)
-     * @param $pt2 array(BC, BC)
-     * @return array(BC, BC)
+     * @param array(BC, BC) $pt1
+     * @param array(BC, BC) $pt2
+     *
+     * @return bool
      */
 
     private static function comparePoint($pt1, $pt2)
@@ -157,12 +171,18 @@ class PointMathBCMATH
         }
     }
 
-    // The Greatest Common Denominator of two large numbers, using BCMath functions.
+    /**
+     * Computes the Greatest Common Denominator of two large numbers.
+     *
+     * @param int $value1
+     * @param int $value2
+     *
+     * @return int
+     */
     private static function bcgcd($value1, $value2)
     {
 
-        if ($value1 < $value2) // Swap $value1 and $value2
-        {
+        if ($value1 < $value2) { // Swap $value1 and $value2
             $temp = $value1;
             $value1 = $value2;
             $value2 = $temp;
@@ -176,14 +196,15 @@ class PointMathBCMATH
             $value1 = $value2;
             $value2 = $mod;
         }
-        return $value1;
 
+        return $value1;
     }
 
-    /***
+    /**
      * Returns Negated Point (Y).
      *
-     * @param $point array(BC, BC)
+     * @param array(BC, BC) $point
+     *
      * @return array(BC, BC)
      */
     public static function negatePoint($point)
@@ -191,12 +212,15 @@ class PointMathBCMATH
         return array('x' => $point['x'], 'y' => bcsub(0, $point['y']));
     }
 
-    // These 2 function don't really belong here.
-
-    // Checks is the given number (DEC String) is even
+    /**
+     * Checks is the given number (DEC string) is even.
+     *
+     * @param string $number
+     *
+     * @return bool
+     */
     public static function isEvenNumber($number)
     {
         return (((int)$number[strlen($number) - 1]) & 1) == 0;
     }
-
 }

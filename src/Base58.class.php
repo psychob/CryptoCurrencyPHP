@@ -2,23 +2,26 @@
 
 namespace PsychoB\CryptoCurrencyPHP;
 
+use Exception;
+
 /*
  * Object Oriented implimentation to Base58.
- * For use with Bitcoin and Zetacoin compatable crypto currency using the secp256k1 ECC curve
  *
- * @author Daniel Morante
- * Some parts may contain work based on Jan Moritz Lindemann, Matyas Danter, and Joey Hewitt
+ * For use with Bitcoin and Zetacoin compatable crypto currency using the secp256k1 ECC curve.
+ *
+ * Author Daniel Morante
+ * Some parts may contain work based on Jan Moritz Lindemann, Matyas Danter and Joey Hewitt
 */
 
 class Base58
 {
-
-    /***
+    /**
      * Permutation table used for Base58 encoding and decoding.
      *
-     * @param $char
-     * @param bool $reverse
-     * @return null
+     * @param string $char    Character
+     * @param bool   $reverse Is reversed
+     *
+     * @return string|null
      */
     private static function permutation_lookup($char, $reverse = false)
     {
@@ -85,6 +88,7 @@ class Base58
 
         if ($reverse) {
             $reversedTable = array();
+
             foreach ($table as $key => $element) {
                 $reversedTable[$element] = $key;
             }
@@ -103,31 +107,37 @@ class Base58
         }
     }
 
-    /***
-     * encode a hexadecimal string in Base58.
+    /**
+     * Encode a hexadecimal string in Base58.
      *
-     * @param String Hex $data
-     * @param bool $littleEndian
-     * @return String Base58
-     * @throws \Exception
+     * @param string $data         Data in Hex
+     * @param bool   $littleEndian Is reversed
+     *
+     * @return string (base58)
+     *
+     * @throws Exception If there was error during Base58 encoding
      */
     public static function Encode($data, $littleEndian = true)
     {
         $res = '';
         $dataIntVal = gmp_init($data, 16);
+
         while (gmp_cmp($dataIntVal, gmp_init(0, 10)) > 0) {
             $qr = gmp_div_qr($dataIntVal, gmp_init(58, 10));
             $dataIntVal = $qr[0];
             $reminder = gmp_strval($qr[1]);
+
             if (!self::permutation_lookup($reminder)) {
-                throw new \Exception('Something went wrong during base58 encoding');
+                throw new Exception('Something went wrong during base58 encoding');
             }
+
             $res .= self::permutation_lookup($reminder);
         }
 
-        //get number of leading zeros
+        // Get number of leading zeros
         $leading = '';
         $i = 0;
+
         while (substr($data, $i, 1) == '0') {
             if ($i != 0 && $i % 2) {
                 $leading .= '1';
@@ -142,17 +152,19 @@ class Base58
         }
     }
 
-    /***
-     * Decode a Base58 encoded string and returns it's value as a hexadecimal string
+    /**
+     * Decode a Base58 encoded string and returns it's value as a hexadecimal string.
      *
-     * @param $encodedData
-     * @param bool $littleEndian
-     * @return String Hex
+     * @param string $encodedData  Encoded data in Base58
+     * @param bool   $littleEndian Is reversed
+     *
+     * @return string (hex)
      */
     public static function Decode($encodedData, $littleEndian = true)
     {
         $res = gmp_init(0, 10);
         $length = strlen($encodedData);
+
         if ($littleEndian) {
             $encodedData = strrev($encodedData);
         }
@@ -169,6 +181,7 @@ class Base58
 
         $res = gmp_strval($res, 16);
         $i = $length - 1;
+
         while (substr($encodedData, $i, 1) == '1') {
             $res = '00' . $res;
             $i--;
