@@ -263,7 +263,7 @@ class Signature
         // Precalculate (p + 1) / 4 where p is the field order
         // $p_over_four is GMP
         static $p_over_four; // XXX just assuming only one curve/prime will be used
-        if (!$p_over_four) {
+        if (!isset($p_over_four) && !$p_over_four) {
             $p_over_four = gmp_div(gmp_add($p, 1), 4);
         }
 
